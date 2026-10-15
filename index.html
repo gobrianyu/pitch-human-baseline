@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Message Placement Validation Tool</title>
+    <link rel="stylesheet" href="css/styles.css?v=20260925A">
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+</head>
+<body>
+    <div id="prolific-screen" class="prolific-screen" style="display: flex;">
+        <div class="prolific-container">
+            <h1>Message Placement Study</h1>
+
+            <div class="consent-section">
+                <p class="consent-text">
+                    We invite you to take part in a research study about when messages fit best in group conversations.
+                    You will read one group conversation and decide where each of three possible messages should be added,
+                    or whether it should not be added at all. The study should take less than 5 minutes.
+                </p>
+                <p class="consent-text">
+                    <strong>Payment:</strong> You will receive $1.50 base pay upon completion of the study, plus a bonus
+                    of up to $2.00 based on how closely your choices match reference judgments.
+                </p>
+                <p class="consent-text">
+                    Your responses will be used for research. The risks of participating are minimal. Participation is
+                    voluntary, and you may stop at any time.
+                </p>
+                <p class="consent-text">
+                    By clicking "I agree" below, you confirm that you are 18 or older, are fluent in written English,
+                    and agree to participate in this study.
+                </p>
+                <p class="consent-text consent-contact">
+                    <strong>Questions about the study:</strong> Ruotong Wang
+                    (<a href="mailto:ruotongw@cs.washington.edu">ruotongw@cs.washington.edu</a>)<br>
+                    <strong>Questions about your rights as a research participant:</strong> UW Human Subjects Division,
+                    206-543-0098, <a href="mailto:hsdinfo@uw.edu">hsdinfo@uw.edu</a>
+                </p>
+
+                <div class="consent-checkbox">
+                    <input type="checkbox" id="consent-agree" required>
+                    <label for="consent-agree">I agree to participate in this research study</label>
+                </div>
+            </div>
+
+            <div class="prolific-form">
+                <label for="prolific-id">Enter your Prolific ID to begin:</label>
+                <input type="text" id="prolific-id" placeholder="e.g., 5f8a9b7c6d4e3f2a1b0c9d8e" required>
+                <button id="btn-prolific-submit" class="btn-prolific-submit" disabled>Continue</button>
+                <div id="prolific-error" class="prolific-error hidden">Please enter a valid Prolific ID</div>
+            </div>
+
+            <!-- Bot Detection: Hidden honeypot fields -->
+            <div class="honeypot-container" style="position: absolute; left: -5000px; top: -5000px;" aria-hidden="true">
+                <input type="text" name="email" id="honeypot-email" tabindex="-1" autocomplete="off">
+                <input type="text" name="username" id="honeypot-username" tabindex="-1" autocomplete="off">
+                <input type="text" name="phone" id="honeypot-phone" tabindex="-1" autocomplete="off">
+                <input type="checkbox" id="honeypot-check" name="bot_check" tabindex="-1">
+                <label for="honeypot-check">Check here if you are human</label>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading" class="loading hidden">Loading data...</div>
+
+    <!-- Instruction Page 1: Instructions + Payment Info -->
+    <div id="instruction-screen-1" class="instruction-screen hidden" style="display: none;">
+        <div class="instruction-container">
+            <h1>Instructions</h1>
+
+            <div class="instruction-box instructions-section">
+                <div class="instruction-box-title">Payment Information</div>
+                <p class="instruction-goal">
+                    You can earn <strong>up to $3.50</strong> for completing this task:
+                </p>
+                <ul class="instruction-list">
+                    <li><strong>Base payment:</strong> $1.50 for completing the study</li>
+                    <li><strong>Bonus payment:</strong> Up to $2.00 based on how closely your choices match reference judgments</li>
+                </ul>
+            </div>
+
+            <div class="instruction-box instructions-section">
+                <div class="instruction-box-title">Your Task</div>
+                <p class="instruction-goal">You will work through <strong>ONE conversation</strong> and decide where to insert <strong>3 different messages</strong>. Imagine you are participating in the conversation and find the <strong>best opportunity to send each message</strong>.</p>
+
+                <div class="instruction-emphasis">
+                    ⚠️ <strong>IMPORTANT:</strong> Evaluate each message <strong>INDEPENDENTLY</strong>. <span class="no-break">One message should NOT affect whether you send another message.</span>
+                </div>
+
+                <ol class="instruction-list">
+                    <li>You will read the conversation <strong>one turn at a time</strong></li>
+                    <li>After each turn, you'll see <strong>3 message options on the right</strong></li>
+                    <li>For each message, ask yourself independently: <strong>"Should I send THIS message now?"</strong>
+                        <ul class="instruction-sublist">
+                            <li>If <strong>YES</strong>, click its <strong>"Send"</strong> button</li>
+                            <li>If <strong>NO</strong>, just continue to the next turn</li>
+                        </ul>
+                    </li>
+                    <li><strong>You CAN send multiple messages in ONE turn</strong> if they all fit at that point</li>
+                    <li>Each message can only be sent once</li>
+                    <li>If you reach the end and a message never felt relevant, mark it as "Not Relevant"</li>
+                </ol>
+            </div>
+
+            <!-- Bot Detection: Hidden skip button -->
+            <div class="honeypot-container" style="position: absolute; left: -5000px; top: -5000px;" aria-hidden="true">
+                <button id="honeypot-skip-instructions" tabindex="-1" type="button">Skip Instructions</button>
+                <input type="text" id="honeypot-verify" name="verify_instructions" tabindex="-1" autocomplete="off">
+            </div>
+
+            <button id="btn-next-instruction" class="btn-start-task">Next: View Messages</button>
+        </div>
+    </div>
+
+    <!-- Instruction Page 2: Messages to Consider -->
+    <div id="instruction-screen-2" class="instruction-screen hidden" style="display: none;">
+        <div class="instruction-container">
+            <h1>Messages to Consider</h1>
+
+            <div class="instruction-box message-box-style">
+                <div class="instruction-box-title">3 Messages You Will Consider</div>
+                <div class="instruction-messages-container">
+                    <div class="instruction-message-item">
+                        <div class="instruction-message-label">Message 1:</div>
+                        <div class="instruction-message" id="instruction-message-1"></div>
+                    </div>
+                    <div class="instruction-message-item">
+                        <div class="instruction-message-label">Message 2:</div>
+                        <div class="instruction-message" id="instruction-message-2"></div>
+                    </div>
+                    <div class="instruction-message-item">
+                        <div class="instruction-message-label">Message 3:</div>
+                        <div class="instruction-message" id="instruction-message-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="instruction-navigation">
+                <button id="btn-back-instruction" class="btn-back-instruction">← Back to Instructions</button>
+                <button id="btn-start" class="btn-start-task">Begin Task</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app" class="hidden">
+        <div class="main-layout">
+            <!-- Left Column: Chat Conversation -->
+            <div class="chat-column">
+                <div class="chat-messages" id="chat-messages">
+                    <div id="conversation"></div>
+                    <div class="progress-info">
+                        Conversations can span 20-200 turns, averaging about 60
+                    </div>
+                </div>
+
+                <!-- Preview/Input Area at Bottom -->
+                <div id="preview-area" class="preview-area">
+                    <div class="preview-label">Your message to send:</div>
+                    <div class="preview-container">
+                        <div class="preview-box" id="preview-box">
+                            Click a message option on the right to send it at this point →
+                        </div>
+                        <button id="btn-send" class="btn-send" disabled>Send</button>
+                    </div>
+                </div>
+
+                <div id="confirmation-area" class="confirmation-area hidden">
+                    <div class="confirmation-text">Send this message at this point in the conversation?</div>
+                    <div class="reasoning-section">
+                        <label for="reasoning-input" class="reasoning-label">
+                            Explain your reasoning (required):
+                        </label>
+                        <textarea
+                            id="reasoning-input"
+                            class="reasoning-input"
+                            placeholder="Why does this message fit (or not fit) at this point in the conversation?"
+                            rows="3"
+                        ></textarea>
+                        <div class="reasoning-hint">
+                            ⚠️ Please provide at least one complete sentence explaining your reasoning.
+                            Insufficient explanations (e.g., "it just felt correct") may result in your data being rejected.
+                        </div>
+                        <div id="reasoning-error" class="reasoning-error hidden">
+                            Please provide a meaningful explanation (at least 10 characters).
+                        </div>
+                    </div>
+                    <div class="confirmation-buttons">
+                        <button id="btn-confirm-yes" class="btn-confirm-yes">Yes, Send</button>
+                        <button id="btn-confirm-no" class="btn-confirm-no">Cancel</button>
+                    </div>
+                </div>
+
+                <div id="action-bar" class="action-bar">
+                    <button id="btn-next" class="btn-next-turn" disabled>
+                        See Next Turn
+                        <span class="keyboard-hint">→</span>
+                    </button>
+                    <button id="btn-mark-all-not-relevant" class="btn-mark-all-not-relevant hidden" disabled>
+                        Mark Remaining Messages as Not Relevant
+                    </button>
+                    <button id="btn-complete" class="btn-complete hidden" disabled>
+                        Complete Task
+                    </button>
+                    <div class="action-hint">
+                        💡 Tip: Use <strong>→</strong> or arrow keys to see next turn • You can send multiple messages in one turn
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Message Options -->
+            <div class="messages-column">
+                <div class="messages-header">
+                    <div class="messages-title">Messages to Send</div>
+                    <div class="messages-subtitle">Evaluate each message <strong>independently</strong></div>
+                </div>
+
+                <div class="messages-scroll">
+                    <!-- Message 1 -->
+                    <div class="message-card clickable" id="message-card-1" data-index="1">
+                        <div class="message-status-badge" id="status-badge-1"></div>
+                        <div class="message-text" id="message-text-1"></div>
+                        <button class="btn-select-message" id="btn-select-1" data-index="1">Send</button>
+                    </div>
+
+                    <!-- Message 2 -->
+                    <div class="message-card clickable" id="message-card-2" data-index="2">
+                        <div class="message-status-badge" id="status-badge-2"></div>
+                        <div class="message-text" id="message-text-2"></div>
+                        <button class="btn-select-message" id="btn-select-2" data-index="2">Send</button>
+                    </div>
+
+                    <!-- Message 3 -->
+                    <div class="message-card clickable" id="message-card-3" data-index="3">
+                        <div class="message-status-badge" id="status-badge-3"></div>
+                        <div class="message-text" id="message-text-3"></div>
+                        <button class="btn-select-message" id="btn-select-3" data-index="3">Send</button>
+                    </div>
+
+                    <!-- Bot Detection: Hidden 4th message -->
+                    <div class="message-card honeypot-message" id="message-card-honeypot"
+                         style="position: absolute; left: -5000px; top: -5000px;"
+                         aria-hidden="true">
+                        <div class="message-status-badge" id="status-badge-honeypot"></div>
+                        <div class="message-text">This is a verification message. Please do not select this option.</div>
+                        <button class="btn-select-message" id="btn-select-honeypot" tabindex="-1">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bot Detection: Hidden textarea -->
+        <div class="honeypot-container" style="position: absolute; left: -5000px; top: -5000px;" aria-hidden="true">
+            <textarea id="honeypot-comments" name="comments" tabindex="-1" autocomplete="off"></textarea>
+        </div>
+    </div>
+
+    <!-- Bot Detection: Hidden early complete -->
+    <div class="honeypot-container" style="position: absolute; left: -5000px; top: -5000px;" aria-hidden="true">
+        <button id="honeypot-complete" tabindex="-1" type="button">Complete Study Now</button>
+    </div>
+
+    <div id="completion-screen" class="completion-screen hidden" style="display: none;">
+        <div class="completion-container">
+            <div class="completion-icon">✓</div>
+            <h1>Task Complete!</h1>
+            <p class="completion-message">
+                Thank you for participating in this study. Your response has been recorded.
+            </p>
+            <div class="completion-code-section">
+                <p class="completion-code-label">Your completion code:</p>
+                <div class="completion-code">C1PXNMFC</div>
+                <p class="completion-code-note">Copy this code if the automatic redirect doesn't work</p>
+            </div>
+            <p class="completion-redirect">
+                Redirecting you back to Prolific in a moment...
+            </p>
+        </div>
+    </div>
+
+    <script type="module" src="js/app.js?v=20260925A"></script>
+</body>
+</html>
