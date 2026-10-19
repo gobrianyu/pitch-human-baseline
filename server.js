@@ -24,22 +24,23 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('.'));
 
-// Load eval_pairs data
+// Load study data
 let evalPairsData = null;
 
-// GitHub URL for eval_pairs data (override with EVAL_PAIRS_URL environment variable)
-const EVAL_PAIRS_URL = process.env.EVAL_PAIRS_URL ||
-    'https://raw.githubusercontent.com/your-username/your-data-repo/main/eval_pairs.json';
+// Study data source URL (override with STUDY_DATA_URL environment variable)
+// Default: PITCH benchmark data
+const STUDY_DATA_URL = process.env.STUDY_DATA_URL ||
+    'https://raw.githubusercontent.com/gobrianyu/pitch/master/data/pitch-benchmark-data.json';
 
 async function loadEvalPairs() {
     if (!evalPairsData) {
         try {
             let rawData;
 
-            // Try loading from GitHub URL first
-            if (EVAL_PAIRS_URL.startsWith('http')) {
-                console.log('Loading eval_pairs from URL:', EVAL_PAIRS_URL);
-                const response = await fetch(EVAL_PAIRS_URL);
+            // Try loading from URL first
+            if (STUDY_DATA_URL.startsWith('http')) {
+                console.log('Loading study data from URL:', STUDY_DATA_URL);
+                const response = await fetch(STUDY_DATA_URL);
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
@@ -47,8 +48,8 @@ async function loadEvalPairs() {
                 console.log('Data loaded from URL, size:', rawData.length);
             } else {
                 // Fallback to local file
-                const dataPath = join(__dirname, EVAL_PAIRS_URL);
-                console.log('Loading eval_pairs.json from local file:', dataPath);
+                const dataPath = join(__dirname, STUDY_DATA_URL);
+                console.log('Loading study data from local file:', dataPath);
                 rawData = readFileSync(dataPath, 'utf8');
                 console.log('File loaded, size:', rawData.length);
             }
@@ -64,8 +65,8 @@ async function loadEvalPairs() {
             );
             console.log('Filtered items:', evalPairsData.length);
         } catch (error) {
-            console.error('Error loading eval_pairs data:', error);
-            throw new Error(`Failed to load eval_pairs: ${error.message}`);
+            console.error('Error loading study data:', error);
+            throw new Error(`Failed to load study data: ${error.message}`);
         }
     }
     return evalPairsData;
@@ -600,13 +601,13 @@ app.listen(port, async () => {
     console.log(`Server running on port ${port}`);
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`DATABASE_URL is set:`, !!process.env.DATABASE_URL);
-    console.log(`Eval pairs source: ${EVAL_PAIRS_URL}`);
+    console.log(`Study data source: ${STUDY_DATA_URL}`);
 
-    // Try to load eval_pairs on startup to catch errors early
+    // Try to load study data on startup to catch errors early
     try {
         await loadEvalPairs();
-        console.log('eval_pairs data loaded successfully');
+        console.log('Study data loaded successfully');
     } catch (error) {
-        console.error('Failed to load eval_pairs data on startup:', error);
+        console.error('Failed to load study data on startup:', error);
     }
 });

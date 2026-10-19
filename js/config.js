@@ -10,6 +10,6 @@ export const config = {
     apiBaseUrl: '',
 
     // Prolific completion
-    prolificCompletionUrl: 'https://app.prolific.com/submissions/complete?cc=C1PXNMFC',
+    prolificCompletionUrl: 'your-study-completion-redirect-url',
     redirectDelayMs: 3000 // 3 seconds
 };

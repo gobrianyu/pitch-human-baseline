@@ -1,65 +1,56 @@
-# Quick Start - Host & Expose in 5 Minutes
+# Quick Start - Run Locally & Share via ngrok
 
-## For Windows Users
+The study needs the Node.js server (`server.js`) and a PostgreSQL database. A plain static file server (e.g. `python -m http.server`) will **not** work, because the app calls the `/api/*` endpoints.
 
-### Step 1: Start Local Server
-1. Open Command Prompt or PowerShell
-2. Navigate to this folder:
-   ```bash
-   cd /path/to/your/project
-   ```
-3. Run:
-   ```bash
-   python -m http.server 8000
-   ```
-4. **Keep this terminal open!**
+## Prerequisites
 
-You should see:
-```
-Serving HTTP on :: port 8000 (http://[::]:8000/) ...
-```
+- Node.js 18 or newer
+- A PostgreSQL database (a free Render database or a local Postgres both work, see [DEPLOY.md](DEPLOY.md#local-development))
+- A free [ngrok](https://ngrok.com/download) account (only to share with remote participants)
 
-### Step 2: Test Locally (Optional)
-
-1. Open browser to: http://localhost:8000
-2. Verify the app loads correctly
-3. Test completing one item end-to-end
-
-### Step 3: Install & Setup ngrok (One-Time)
-
-#### Install ngrok
-1. Go to https://ngrok.com/download
-2. Download for Windows
-3. Extract `ngrok.exe` anywhere (e.g., Downloads folder)
-
-#### Get Auth Token
-1. Sign up at https://ngrok.com (free)
-2. Copy your auth token from the dashboard
-3. Open a **new** Command Prompt/PowerShell
-4. Run (replace with your token):
-   ```bash
-   C:\path\to\ngrok.exe config add-authtoken YOUR_TOKEN_HERE
-   ```
-
-### Step 4: Create Public Tunnel
-
-In a **new terminal** (keep the server running in the first one):
+## Step 1: Install & Configure
 
 ```bash
-# If ngrok is in Downloads folder:
-C:\path\to\ngrok.exe http 8000
-
-# If you moved it to a PATH location:
-ngrok http 8000
+npm install
+cp .env.example .env      # on Windows PowerShell: Copy-Item .env.example .env
 ```
 
-### Step 5: Share the URL
+Edit `.env`:
+- `DATABASE_URL`: your PostgreSQL connection string
+- `STUDY_DATA_URL`: where your study data lives (defaults to the PITCH benchmark data). See [Creating Your Own Study](README.md#creating-your-own-study)
 
-Look for the line that says:
-```
-Forwarding    https://abc123.ngrok-free.app -> http://localhost:8000
+Note: `server.js` reads environment variables from the process, so load `.env` in your shell (or set the variables directly) before starting. Example for bash: `set -a; source .env; set +a`.
+
+## Step 2: Create the Database Tables
+
+```bash
+psql "$DATABASE_URL" -f db/schema.sql
 ```
 
-**Copy the `https://abc123.ngrok-free.app` URL** and share it with participants.
-- Full hosting guide: See [HOSTING.md](HOSTING.md)
-- Web interface: http://localhost:4040 (while ngrok running)
+The script is safe to re-run.
+
+## Step 3: Start the Server
+
+```bash
+npm start
+```
+
+You should see `Server running on port 3000`, `Database connected successfully`, and `Study data loaded successfully`.
+
+## Step 4: Test Locally
+
+1. Open http://localhost:3000
+2. Accept the consent text and enter a test Prolific ID
+3. Complete one conversation end to end (all three messages sent or marked not relevant, then "Complete Task")
+4. Confirm rows appear in the `user_items` table
+
+## Step 5: Share with ngrok
+
+1. Install ngrok and add your auth token (one-time): `ngrok config add-authtoken YOUR_TOKEN`
+2. In a **new terminal** (keep the server running):
+   ```bash
+   ngrok http 3000
+   ```
+3. Copy the `https://....ngrok-free.app` URL from the `Forwarding` line and share it with participants
+
+More options (basic auth, monitoring, troubleshooting): [HOSTING.md](HOSTING.md). For persistent hosting: [DEPLOY.md](DEPLOY.md).

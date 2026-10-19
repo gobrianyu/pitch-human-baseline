@@ -32,6 +32,10 @@ CREATE TABLE IF NOT EXISTS user_items (
     reasoning TEXT, -- User's explanation for their message placement decision
     ground_truth JSONB, -- Store ground truth data for analysis
     item_data JSONB, -- Store full item data
+    bot_detection_score INTEGER DEFAULT 0, -- Cumulative bot-detection score
+    bot_detection_data JSONB, -- Full bot-detection report (violations, timing, interaction)
+    flagged_as_bot BOOLEAN DEFAULT FALSE,
+    interaction_timings JSONB, -- Timing measurements collected client-side
     assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     completed_at TIMESTAMP,
     CHECK (status IN ('in_progress', 'completed')),
@@ -40,7 +44,29 @@ CREATE TABLE IF NOT EXISTS user_items (
     UNIQUE(user_id, knowledge_item_id, user_choice)
 );
 
+-- Upgrade path for databases created before bot detection was added
+ALTER TABLE user_items ADD COLUMN IF NOT EXISTS bot_detection_score INTEGER DEFAULT 0;
+ALTER TABLE user_items ADD COLUMN IF NOT EXISTS bot_detection_data JSONB;
+ALTER TABLE user_items ADD COLUMN IF NOT EXISTS flagged_as_bot BOOLEAN DEFAULT FALSE;
+ALTER TABLE user_items ADD COLUMN IF NOT EXISTS interaction_timings JSONB;
+
+-- Bot flags table (individual bot-detection violations)
+CREATE TABLE IF NOT EXISTS bot_flags (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    session_id INTEGER REFERENCES sessions(id) ON DELETE CASCADE,
+    user_item_id INTEGER NOT NULL REFERENCES user_items(id) ON DELETE CASCADE,
+    flag_type VARCHAR(100) NOT NULL,
+    flag_reason TEXT,
+    flag_data JSONB,
+    severity VARCHAR(50),
+    points_added INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes for better query performance
+CREATE INDEX IF NOT EXISTS idx_bot_flags_user_item_id ON bot_flags(user_item_id);
+CREATE INDEX IF NOT EXISTS idx_user_items_bot_score ON user_items(bot_detection_score);
 CREATE INDEX IF NOT EXISTS idx_users_prolific_id ON users(prolific_id);
 CREATE INDEX IF NOT EXISTS idx_user_items_user_id ON user_items(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_items_status ON user_items(status);
