@@ -3,10 +3,10 @@
 A modular web application for conducting human annotation studies on message placement in conversations. Perfect for researchers studying conversational AI, dialogue systems, or human-AI interaction.
 
 **External Links:**
-- [PITCH Benchmark (GitHub)](https://github.com/gobrianyu/pitch) - Annotation system and full research project; main repository
-- [Project Website](https://ruotongw.github.io/PITCH-website/) - Learn more about PITCH
-- [Benchmark Data](https://github.com/gobrianyu/pitch/blob/master/data/pitch-benchmark-data.json) - PITCH benchmark dataset
-- [Human Baseline Data](https://github.com/gobrianyu/pitch/blob/master/data/human-baseline-data.csv) - Human annotation experiment data
+- [PITCH Benchmark (GitHub)](https://github.com/Social-Futures-Lab/pitch) - Annotation system and full research project; main repository
+- [Project Website](https://social.cs.washington.edu/PITCH-website/) - Learn more about PITCH
+- [Benchmark Data](https://github.com/Social-Futures-Lab/pitch/blob/master/data/pitch-benchmark-data.json) - PITCH benchmark dataset
+- [Human Baseline Data](https://github.com/Social-Futures-Lab/pitch/blob/master/data/human-baseline-data.csv) - Human annotation experiment data
 
 ## Project Structure
 
@@ -54,7 +54,7 @@ Configuration lives in `.env` (see `.env.example`): `DATABASE_URL` and `STUDY_DA
 
 Each response is saved to PostgreSQL as the participant goes, one row per message in `user_items`, including the turn chosen (`user_choice`, null if not relevant), the participant's reasoning, timing data, and bot-detection data. See [here](DEPLOY.md#viewing-and-exporting-data) for queries and export, and [here](DEPLOY.md#bot-detection-review) for reviewing flagged submissions.
 
-If you are creating your own study, prepare and host your data in a JSON file following the format laid out [here](https://github.com/gobrianyu/pitch/blob/master/data/README.md). Update the STUDY_DATA_URL environment variable accordingly (see [.env.example](/.env.example)).
+If you are creating your own study, prepare and host your data in a JSON file following the format laid out [here](https://github.com/Social-Futures-Lab/pitch/blob/master/data/README.md). Update the STUDY_DATA_URL environment variable accordingly (see [.env.example](/.env.example)).
 
 
 ## Citation
